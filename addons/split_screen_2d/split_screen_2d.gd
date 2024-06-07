@@ -1,53 +1,109 @@
 class_name SplitScreen2D
 extends Node2D
 
+## Emitted when the maximum number of players has been reached or exceeded.
+## 
+## This signal is emitted _after_ the `player_added` signal, but before `split_screen_rebuilt`.
+signal max_players_reached(player_count: int)
+
+## Emitted when the minimum number of players has been reached or exceeded.
+## 
+## This signal is emitted _after_ the `player_removed` signal, but before `split_screen_rebuilt`
+## and before `queue_free()` is called (if applicable).
+signal min_players_reached(player_count: int)
+
+## Emitted when a player has been added to the `players` list.
+## 
+## This signal is emitted _before_ the `player_added` and `split_screen_rebuilt` signals.
+signal player_added(player: Node2D)
+
+## Emitted when a player has been removed from the `players` list.
+## 
+## This signal is emitted _before_ the `player_added` and `split_screen_rebuilt` signals, and
+## before `queue_free()` is called (if applicable).
+signal player_removed(player: Node2D)
+
+## Emitted when the `SplitScreen2D` tree is finished rebuilding. The `reason` parameter indicates
+## wheter `rebuild()` was called after adding or removing a player, resizing the screen, or from
+## an external script.
+signal split_screen_rebuilt(reason: RebuildReason)
+
+## Default delay (in seconds) before rebuilding the `SplitScreen2D` tree, recommended to avoid
+## a performance hit when calling the `rebuild()` too many times in rapid succession (i.e. when
+## the window is being resized).
+const DEFAULT_REBUILD_DELAY: float = 0.2
+
+## Minimum number of player screens supported by this plugin.
 const MIN_PLAYERS: int = 1
+
+## Maximum number of player screens supported by this plugin.
 const MAX_PLAYERS: int = 8
 
+## Used to indicate wheter `rebuild()` was called after adding or removing a player, resizing the
+## screen, or from an external script.
+enum RebuildReason {
+	EXTERNAL_REQUEST,
+	PLAYER_ADDED,
+	PLAYER_REMOVED,
+	SCREEN_SIZE_CHANGED,
+}
+
+## One child node must be designated as the play area. This will be reparented and become a child
+## node of the primary viewport. Typically, this is a `TileMap` (or an instance of a scene that
+## contains a `TileMap`), but it can be of any type derived from `Node2D`.
 @export var play_area: Node2D
+
+## The minimum number of player screens intended to be displayed; default is 1.
 @export_range(MIN_PLAYERS, MAX_PLAYERS) var min_players: int = MIN_PLAYERS
+
+## The maximum number of player screens allowed; default is 8.
 @export_range(MIN_PLAYERS, MAX_PLAYERS) var max_players: int = MAX_PLAYERS
 
 @export_group("Performance Optimization")
+
+## If set to `true` (default), the `SplitScreen2D` tree will be rebuilt each time a new player is
+## added.
 @export var rebuild_when_player_added: bool = true
+
+## If set to `true` (default), the `SplitScreen2D` tree will be rebuilt each time a player is
+## removed.
 @export var rebuild_when_player_removed: bool = true
+
+## If set to `true` (default), the `SplitScreen2D` tree will be rebuilt each time the screen is
+## resized, up to a maximum of once per `rebuild_delay` seconds.
 @export var rebuild_when_screen_resized: bool = true
 
+## Used to adjust the mandatory delay between calls to `rebuild()`; default is 0.2 seconds. Calls
+## made during the delay will be consolidated into a single call after the delay.
+@export var rebuild_deleay: float = DEFAULT_REBUILD_DELAY
+
+## Calculated field that is equivalent to `get_viewport().get_visible_rect().size`.
 var screen_size: Vector2: get = get_screen_size
 
+## An array of `Camera2D` nodes, each corresponding to the player in `players` at the same index.
 var cameras: Array[Camera2D] = []
+
+## An array of nodes that represent each player. This list is populated with the child nodes of
+## `SplitScreen2D` (excluding `play_area`), and is automatically updated when children are added or
+## removed. 
 var players: Array[Node2D] = []
+
+## An array of `SubViewport` nodes, each corresponding to the player in `players` at the same index.
 var viewports: Array[SubViewport] = []
+
+## The outermost `HBoxContainer` or `VBoxContainer` that contains all of the viewports and cameras.
+## This becomes the only child of `SplitScreen2D` after `_ready()` is called, because `play_area`
+## is moved inside the primary viewport, and each of the player nodes are moved inside `play_area`.
 var viewport_container: BoxContainer
+
+## Used to determine if `rebuild()` has already been called within the `rebuild_deleay` period.
+var _is_rebuilding: bool = false
 
 
 func _ready() -> void:
 	_auto_detect_player_nodes()
 	_build()
 	_connect_signals()
-
-
-func _on_child_entered_tree(node: Node) -> void:
-	if node == play_area:
-		return
-	
-	if node in get_children() and is_instance_of(node, Node2D) and node not in players:
-		# Assume this node is a new player and add it.
-		add_player(node)
-
-
-func _on_child_exiting_tree(node: Node) -> void:
-	if node == play_area:
-		return
-	
-	if node in get_children() and is_instance_of(node, Node2D) and node in players:
-		# Remove this player node, but don't call queue_free() since it's already exiting.
-		remove_player(node, false)
-
-
-func _on_screen_size_changed() -> void:
-	if rebuild_when_screen_resized:
-		rebuild()
 
 
 func add_player(player: Node2D) -> void:
@@ -59,18 +115,31 @@ func add_player(player: Node2D) -> void:
 		return
 	
 	players.append(player)
+	player_added.emit(player)
+	
+	if players.size() <= min_players:
+		min_players_reached.emit(players.size())
 	
 	if rebuild_when_player_added:
-		rebuild()
+		rebuild(RebuildReason.PLAYER_ADDED)
 
 
 func get_screen_size() -> Vector2:
 	return get_viewport().get_visible_rect().size
 
 
-func rebuild() -> void:
+func rebuild(reason: RebuildReason = RebuildReason.EXTERNAL_REQUEST) -> void:
+	if _is_rebuilding:
+		return
+	
+	_is_rebuilding = true
+	await get_tree().create_timer(rebuild_deleay).timeout
+	_is_rebuilding = false
+	
 	_clear_viewport_container()
 	_build()
+	
+	split_screen_rebuilt.emit(reason)
 
 
 func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
@@ -82,17 +151,22 @@ func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
 		return
 	
 	players.pop_at(players.find(player))
+	player_removed.emit(player)
+	
+	if players.size() >= max_players:
+		max_players_reached.emit(players.size())
 	
 	if should_queue_free:
 		player.queue_free()
 	
 	if rebuild_when_player_removed:
-		rebuild()
+		rebuild(RebuildReason.PLAYER_REMOVED)
 
 
 func _auto_detect_player_nodes() -> void:
 	for child in get_children():
 		if players.size() >= max_players:
+			max_players_reached.emit()
 			break  # Stop adding players.
 		
 		if child == play_area:
@@ -105,64 +179,53 @@ func _auto_detect_player_nodes() -> void:
 func _build() -> void:
 	var player_count: int = players.size()
 	
-	match player_count:
-		1, 2:
-			viewport_container = _build_1x(player_count)
-		3, 4:
-			viewport_container = _build_2x2()
-		5, 6:
-			viewport_container = _build_3x2()
-		7, 8:
-			viewport_container = _build_4x4()
-	
+	viewport_container = BoxContainer.new()
+	viewport_container.set_alignment(BoxContainer.ALIGNMENT_CENTER)
 	viewport_container.set_anchors_preset(Control.PRESET_FULL_RECT)
 	
+	if players.size() > 1:
+		viewport_container.add_spacer(false)
+	
+	if player_count == 1:
+		viewport_container.add_child(_build_viewport(screen_size))
+		viewport_container.set_vertical(true)
+		
+	elif player_count < 4:
+		var size := Vector2(screen_size.x / player_count, screen_size.y)
+		
+		for i in range(player_count):
+			viewport_container.add_child(_build_viewport(size))
+		viewport_container.set_vertical(false)
+		
+	else:
+		var top := BoxContainer.new()
+		var bottom := BoxContainer.new()
+		var top_half_player_count: int = floor(player_count / 2)
+		var bottom_half_player_count: int = top_half_player_count + (player_count % 2)
+		var top_size := Vector2(screen_size.x / top_half_player_count, screen_size.y / 2)
+		var bottom_size := Vector2(screen_size.x / bottom_half_player_count, screen_size.y / 2)
+		
+		top.set_alignment(BoxContainer.ALIGNMENT_CENTER)
+		top.set_vertical(false)
+		
+		bottom.set_alignment(BoxContainer.ALIGNMENT_CENTER)
+		bottom.set_vertical(false)
+		
+		for i in range(top_half_player_count):
+			top.add_child(_build_viewport(top_size))
+		
+		for i in range(bottom_half_player_count):
+			bottom.add_child(_build_viewport(bottom_size))
+		
+		viewport_container.add_child(top)
+		viewport_container.add_child(bottom)
+		viewport_container.set_vertical(true)
+	
 	add_child(viewport_container)
-	_build_level()
+	_build_play_area()
 
 
-func _build_1x(viewport_count: int, size: Vector2 = screen_size) -> HBoxContainer:
-	var hbox := HBoxContainer.new()
-	
-	for i in range(viewport_count):
-		var viewport_size := Vector2(size.x / viewport_count, size.y)
-		var viewport := _build_viewport(viewport_size)
-		hbox.add_child(viewport)
-	
-	return hbox
-
-
-func _build_2x2(size: Vector2 = screen_size) -> VBoxContainer:
-	var vbox := VBoxContainer.new()
-	var row_size := Vector2(size.x, size.y / 2)
-	
-	vbox.add_child(_build_1x(2, row_size))
-	vbox.add_child(_build_1x(2, row_size))
-	
-	return vbox
-
-
-func _build_3x2(size: Vector2 = screen_size) -> VBoxContainer:
-	var vbox := VBoxContainer.new()
-	var row_size := Vector2(size.x, size.y / 2)
-	
-	vbox.add_child(_build_1x(3, row_size))
-	vbox.add_child(_build_1x(3, row_size))
-	
-	return vbox
-
-
-func _build_4x4(size: Vector2 = screen_size) -> BoxContainer:
-	var vbox := VBoxContainer.new()
-	var row_size := Vector2(size.x, size.y / 2)
-	
-	vbox.add_child(_build_2x2(row_size))
-	vbox.add_child(_build_2x2(row_size))
-	
-	return vbox
-
-
-func _build_level() -> void:
+func _build_play_area() -> void:
 	var world_2d: World2D
 	
 	play_area.reparent(viewports[0])
@@ -187,7 +250,7 @@ func _build_level() -> void:
 			viewport.set_world_2d(world_2d)
 
 
-func _build_viewport(size: Vector2) -> SubViewportContainer:
+func _build_viewport(size: Vector2 = screen_size) -> SubViewportContainer:
 	var container := SubViewportContainer.new()
 	var viewport := SubViewport.new()
 	var camera := Camera2D.new()
@@ -223,3 +286,26 @@ func _connect_signals() -> void:
 	get_viewport().size_changed.connect(_on_screen_size_changed)
 	self.child_entered_tree.connect(_on_child_entered_tree)
 	self.child_exiting_tree.connect(_on_child_exiting_tree)
+
+
+func _on_child_entered_tree(node: Node) -> void:
+	if node == play_area:
+		return
+	
+	if node in get_children() and is_instance_of(node, Node2D) and node not in players:
+		# Assume this node is a new player and add it.
+		add_player(node)
+
+
+func _on_child_exiting_tree(node: Node) -> void:
+	if node == play_area:
+		return
+	
+	if node in get_children() and is_instance_of(node, Node2D) and node in players:
+		# Remove this player node, but don't call queue_free() since it's already exiting.
+		remove_player(node, false)
+
+
+func _on_screen_size_changed() -> void:
+	if rebuild_when_screen_resized:
+		rebuild(RebuildReason.SCREEN_SIZE_CHANGED)

@@ -1,10 +1,21 @@
-[gd_scene load_steps=4 format=3 uid="uid://c66ynav64ar7c"]
+[gd_scene load_steps=5 format=3 uid="uid://c66ynav64ar7c"]
 
+[ext_resource type="Script" path="res://example/example.gd" id="1_1payl"]
 [ext_resource type="Script" path="res://addons/split_screen_2d/split_screen_2d.gd" id="1_vrpe8"]
 [ext_resource type="PackedScene" uid="uid://mncttxp3qilo" path="res://example/level.tscn" id="2_bs82p"]
 [ext_resource type="PackedScene" uid="uid://6y7lde704860" path="res://example/players/player.tscn" id="3_13yhp"]
 
 [node name="Example" type="Node2D"]
+script = ExtResource("1_1payl")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 2560.0
+offset_bottom = 1440.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="SplitScreen2D" type="Node2D" parent="." node_paths=PackedStringArray("play_area")]
 script = ExtResource("1_vrpe8")
