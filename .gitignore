@@ -207,3 +207,8 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+
+### Video Files
+*.mp4
+*.mov
+*.avi
