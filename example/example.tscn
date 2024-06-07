@@ -12,7 +12,7 @@ play_area = NodePath("Level")
 
 [node name="Level" parent="SplitScreen2D" instance=ExtResource("2_bs82p")]
 
-[node name="Player" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+[node name="Player1" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
 position = Vector2(961, 1002)
 
 [node name="Player2" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]

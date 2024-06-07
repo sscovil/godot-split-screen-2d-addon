@@ -1,9 +1,17 @@
 class_name SplitScreen2D
 extends Node2D
 
+const MIN_PLAYERS: int = 1
+const MAX_PLAYERS: int = 8
+
 @export var play_area: Node2D
-@export_range(1, 8) var min_players: int = 1
-@export_range(1, 8) var max_players: int = 8
+@export_range(MIN_PLAYERS, MAX_PLAYERS) var min_players: int = MIN_PLAYERS
+@export_range(MIN_PLAYERS, MAX_PLAYERS) var max_players: int = MAX_PLAYERS
+
+@export_group("Performance Optimization")
+@export var rebuild_when_player_added: bool = true
+@export var rebuild_when_player_removed: bool = true
+@export var rebuild_when_screen_resized: bool = true
 
 var screen_size: Vector2: get = get_screen_size
 
@@ -14,36 +22,77 @@ var viewport_container: BoxContainer
 
 
 func _ready() -> void:
-	for child in get_children():
-		if players.size() >= max_players:
-			break  # Stop adding players.
-		if child == play_area:
-			continue  # Ignore this node.
-		if is_instance_of(child, Node2D):
-			players.append(child)  # Assume this node is a player.
-	
+	_auto_detect_player_nodes()
 	_build()
-	get_viewport().size_changed.connect(_on_screen_size_changed)
+	_connect_signals()
+
+
+func _input(event):
+	if event.is_action("ui_accept") and Input.is_action_just_pressed("ui_accept"):
+		var player: Player = load("res://example/players/player.tscn").instantiate()
+		add_player(player)
+		return
+	if event.is_action("ui_cancel") and Input.is_action_just_pressed("ui_cancel"):
+		var player: Player = players[-1]
+		remove_player(player)
+		return
 
 
 func _on_screen_size_changed() -> void:
-	_rebuild()
+	if rebuild_when_screen_resized:
+		rebuild()
 
 
 func add_player(player: Node2D) -> void:
-	if players.size() < max_players:
-		players.append(player)
-		_rebuild()
+	if players.size() >= max_players:
+		var hint: String = "Adjust max_players setting to allow more than %d." % max_players
+		if max_players >= MAX_PLAYERS:
+			hint = "Maximum number of players is %d." % MAX_PLAYERS
+		push_warning("Cannot add player. %s" % hint)
+		return
+	
+	players.append(player)
+	
+	if rebuild_when_player_added:
+		rebuild()
 
 
 func get_screen_size() -> Vector2:
 	return get_viewport().get_visible_rect().size
 
 
-func remove_player(player: Node2D) -> void:
-	if players.size() > min_players and players.has(player):
-		players.pop_at(players.find(player))
-		_rebuild()
+func rebuild() -> void:
+	_clear_viewport_container()
+	_build()
+
+
+func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
+	if players.size() <= min_players or player not in players:
+		var hint: String = "Adjust min_players setting to allow fewer than %d." % min_players
+		if max_players >= MIN_PLAYERS:
+			hint = "Minimum number of players is %d." % MIN_PLAYERS
+		push_warning("Cannot remove player. %s" % hint)
+		return
+	
+	players.pop_at(players.find(player))
+	
+	if should_queue_free:
+		player.queue_free()
+	
+	if rebuild_when_player_removed:
+		rebuild()
+
+
+func _auto_detect_player_nodes() -> void:
+	for child in get_children():
+		if players.size() >= max_players:
+			break  # Stop adding players.
+		
+		if child == play_area:
+			continue  # Ignore this node.
+		
+		if is_instance_of(child, Node2D):
+			players.append(child)  # Assume this node is a player.
 
 
 func _build() -> void:
@@ -159,6 +208,5 @@ func _clear_viewport_container() -> void:
 	viewport_container.queue_free()
 
 
-func _rebuild() -> void:
-	_clear_viewport_container()
-	_build()
+func _connect_signals() -> void:
+	get_viewport().size_changed.connect(_on_screen_size_changed)
