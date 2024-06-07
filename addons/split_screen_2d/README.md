@@ -57,7 +57,8 @@ as well as any nodes that represents your players, as children of the `SplitScre
 Typically, the play area will be a `TileMap` (or an instance of a scene containing a `TileMap`); and players will be
 `CharacterBody2D` instances, but that is not required. They can be of any node type that is derived from `Node2D`.
 
-Finally, configure the `SplitScreen2D` node as described in the next section.
+Finally, you'll need to configure the `SplitScreen2D` by assigning it a `Play Area`, as described in the
+[Configuration](#configuration) section below.
 
 ## Configuration
 
@@ -118,30 +119,42 @@ extends Node2D
 @onready var split_screen_2d: SplitScreen2D = $SplitScreen2D
 
 func _ready():
-    # Disable automatic rebuilding of the viewport tree.
-    split_screen_2d.rebuild_when_player_added = false
-    split_screen_2d.rebuild_when_player_removed = false
-    split_screen_2d.rebuild_when_screen_resized = false
+	# Disable automatic rebuilding of the viewport tree.
+	split_screen_2d.rebuild_when_player_added = false
+	split_screen_2d.rebuild_when_player_removed = false
+	split_screen_2d.rebuild_when_screen_resized = false
 
 func add_player(new_player: Player):
-    # Add the player to the split screen.
-    split_screen_2d.add_player(new_player)
-    # Rebuild the viewport tree.
-    split_screen_2d.rebuild()
+	# Add the player to the split screen.
+	split_screen_2d.add_player(new_player)
+	# Rebuild the viewport tree.
+	split_screen_2d.rebuild()
 
 func remove_player(player: Player):
-    # Set to true (default) if the player node should be deleted; otherwise, set to false.
-    var should_queue_free: bool = false
-    # Remove the player from the split screen.
-    split_screen_2d.remove_player(player, should_queue_free)
-    # Rebuild the viewport tree.
-    split_screen_2d.rebuild()
-    # Optionally, do something with the player node if you kept it.
-    player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
+	# Set to true (default) if the player node should be deleted; otherwise, set to false.
+	var should_queue_free: bool = false
+	# Remove the player from the split screen.
+	split_screen_2d.remove_player(player, should_queue_free)
+	# Rebuild the viewport tree.
+	split_screen_2d.rebuild()
+	# Optionally, do something with the player node if you kept it.
+	player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
 ```
 
 Again, this should not be necessary for most projects, but it is available if you need it—or if you're  just a control
 freak.
+
+## Signals
+
+The `SplitScreen2D` node emits the following signals:
+
+- `max_players_reached(player_count: int)`: Emitted when the maximum number of players is reached or exceeded.
+- `min_players_reached(player_count: int)`: Emitted when the minimum number of players is reached or exceeded.
+- `player_added(player: Node2D)`: Emitted when a player is added to the split screen.
+- `player_removed(player: Node2D)`: Emitted when a player is removed from the split screen.
+- `split_screen_rebuilt(reason: RebuildReason)`: Emitted when the `SplitScreen2D` tree is rebuilt.
+
+For an example of how to connect to these signals, see the [example project](./example/example.gd).
 
 ## Troubleshooting
 
@@ -175,6 +188,12 @@ the inspector or in code.
 ### Split Screen Not Rebuilding On Screen Resize
 
 Ensure that the `rebuild_when_screen_resized` property is set to `true` (default) in the inspector or in code.
+
+### I Can't Change The Color Of Split Screen Borders
+
+The split screen borders are not drawn; they are just transparent empty space between the viewports. You can place a
+`ColorRect` node above the `SplitScreen2D` node in your scene tree to colorize to the spacers, as was done in the
+[example project](./example/example.gd).
 
 ## License
 
