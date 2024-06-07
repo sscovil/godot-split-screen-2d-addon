@@ -1,0 +1,52 @@
+[gd_scene load_steps=4 format=3 uid="uid://c66ynav64ar7c"]
+
+[ext_resource type="Script" path="res://addons/split_screen_2d/split_screen_2d.gd" id="1_vrpe8"]
+[ext_resource type="PackedScene" uid="uid://mncttxp3qilo" path="res://example/level.tscn" id="2_bs82p"]
+[ext_resource type="PackedScene" uid="uid://6y7lde704860" path="res://example/players/player.tscn" id="3_13yhp"]
+
+[node name="Example" type="Node2D"]
+
+[node name="SplitScreen2D" type="Node2D" parent="." node_paths=PackedStringArray("play_area")]
+script = ExtResource("1_vrpe8")
+play_area = NodePath("Level")
+
+[node name="Level" parent="SplitScreen2D" instance=ExtResource("2_bs82p")]
+
+[node name="Player" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(961, 1002)
+
+[node name="Player2" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+player_id = "p2"
+avatar = 1
+avatar_color = Color(1, 1, 0, 1)
+
+[node name="Player3" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(1424, 723)
+player_id = "p3"
+avatar = 2
+
+[node name="Player4" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(1287, 1001)
+player_id = "p4"
+avatar = 2
+avatar_color = Color(0.904088, 0.000659692, 0.904082, 1)
+
+[node name="Player5" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(745, 1002)
+avatar = 1
+
+[node name="Player6" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(1352, 441)
+player_id = "p2"
+avatar_color = Color(0, 1, 1, 1)
+
+[node name="Player7" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(1902, 1002)
+player_id = "p3"
+avatar_color = Color(1, 0.529412, 0.517647, 1)
+
+[node name="Player8" parent="SplitScreen2D" instance=ExtResource("3_13yhp")]
+position = Vector2(2226, 371)
+player_id = "p4"
+avatar = 1
+avatar_color = Color(0.141176, 1, 0.192157, 1)
