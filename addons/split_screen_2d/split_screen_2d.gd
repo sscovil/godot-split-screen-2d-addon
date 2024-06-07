@@ -27,17 +27,6 @@ func _ready() -> void:
 	_connect_signals()
 
 
-func _input(event):
-	if event.is_action("ui_accept") and Input.is_action_just_pressed("ui_accept"):
-		var player: Player = load("res://example/players/player.tscn").instantiate()
-		add_player(player)
-		return
-	if event.is_action("ui_cancel") and Input.is_action_just_pressed("ui_cancel"):
-		var player: Player = players[-1]
-		remove_player(player)
-		return
-
-
 func _on_screen_size_changed() -> void:
 	if rebuild_when_screen_resized:
 		rebuild()

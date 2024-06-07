@@ -118,26 +118,26 @@ extends Node2D
 @onready var split_screen_2d: SplitScreen2D = $SplitScreen2D
 
 func _ready():
-    # Disable automatic rebuilding of the viewport tree.
-    split_screen_2d.rebuild_when_player_added = false
-    split_screen_2d.rebuild_when_player_removed = false
-    split_screen_2d.rebuild_when_screen_resized = false
+	# Disable automatic rebuilding of the viewport tree.
+	split_screen_2d.rebuild_when_player_added = false
+	split_screen_2d.rebuild_when_player_removed = false
+	split_screen_2d.rebuild_when_screen_resized = false
 
 func add_player(new_player: Player):
-    # Add the player to the split screen.
-    split_screen_2d.add_player(new_player)
-    # Rebuild the viewport tree.
-    split_screen_2d.rebuild()
+	# Add the player to the split screen.
+	split_screen_2d.add_player(new_player)
+	# Rebuild the viewport tree.
+	split_screen_2d.rebuild()
 
 func remove_player(player: Player):
-    # Set to true (default) if the player node should be deleted; otherwise, set to false.
-    var should_queue_free: bool = false
-    # Remove the player from the split screen.
-    split_screen_2d.remove_player(player, should_queue_free)
-    # Rebuild the viewport tree.
-    split_screen_2d.rebuild()
-    # Optionally, do something with the player node if you kept it.
-    player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
+	# Set to true (default) if the player node should be deleted; otherwise, set to false.
+	var should_queue_free: bool = false
+	# Remove the player from the split screen.
+	split_screen_2d.remove_player(player, should_queue_free)
+	# Rebuild the viewport tree.
+	split_screen_2d.rebuild()
+	# Optionally, do something with the player node if you kept it.
+	player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
 ```
 
 Again, this should not be necessary for most projects, but it is available if you need it—or if you're  just a control
