@@ -27,6 +27,24 @@ func _ready() -> void:
 	_connect_signals()
 
 
+func _on_child_entered_tree(node: Node) -> void:
+	if node == play_area:
+		return
+	
+	if node in get_children() and is_instance_of(node, Node2D) and node not in players:
+		# Assume this node is a new player and add it.
+		add_player(node)
+
+
+func _on_child_exiting_tree(node: Node) -> void:
+	if node == play_area:
+		return
+	
+	if node in get_children() and is_instance_of(node, Node2D) and node in players:
+		# Remove this player node, but don't call queue_free() since it's already exiting.
+		remove_player(node, false)
+
+
 func _on_screen_size_changed() -> void:
 	if rebuild_when_screen_resized:
 		rebuild()
@@ -80,7 +98,7 @@ func _auto_detect_player_nodes() -> void:
 		if child == play_area:
 			continue  # Ignore this node.
 		
-		if is_instance_of(child, Node2D):
+		if is_instance_of(child, Node2D) and child not in players:
 			players.append(child)  # Assume this node is a player.
 
 
@@ -157,7 +175,11 @@ func _build_level() -> void:
 		
 		remote_transform.set_remote_node(camera.get_path())
 		player.add_child(remote_transform)
-		player.reparent(play_area)
+		
+		if player.get_parent():
+			player.reparent(play_area)
+		else:
+			play_area.add_child(player)
 		
 		if i == 0:
 			world_2d = viewport.get_world_2d()
@@ -199,3 +221,5 @@ func _clear_viewport_container() -> void:
 
 func _connect_signals() -> void:
 	get_viewport().size_changed.connect(_on_screen_size_changed)
+	self.child_entered_tree.connect(_on_child_entered_tree)
+	self.child_exiting_tree.connect(_on_child_exiting_tree)
