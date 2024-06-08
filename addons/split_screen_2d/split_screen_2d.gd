@@ -129,7 +129,7 @@ func get_screen_size() -> Vector2:
 
 
 func rebuild(reason: RebuildReason = RebuildReason.EXTERNAL_REQUEST) -> void:
-	if _is_rebuilding:
+	if _is_rebuilding or !is_inside_tree():
 		return
 	
 	_is_rebuilding = true

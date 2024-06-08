@@ -52,7 +52,7 @@ Now, let's verify you have correctly installed SplitScreen2D:
 To get started, add a `SplitScreen2D` node to your scene tree. Then, add a node that represents your 2D play area,
 as well as any nodes that represents your players, as children of the `SplitScreen2D` node in the scene tree.
 
-![Example Scene Tree](./screenshots/screenshot_04.png)
+![Example Scene Tree](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_04.png)
 
 Typically, the play area will be a `TileMap` (or an instance of a scene containing a `TileMap`); and players will be
 `CharacterBody2D` instances, but that is not required. They can be of any node type that is derived from `Node2D`.
@@ -65,7 +65,7 @@ Finally, you'll need to configure the `SplitScreen2D` by assigning it a `Play Ar
 Configure the `SplitScreen2D` node by selecting it in the scene tree and assigning the `Play Area`, `Min Players`, and
 `Max Players` properties in the inspector. 
 
-![Example Configuration](./screenshots/screenshot_05.png)
+![Example Configuration](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_05.png)
 
 Alternatively, you can set these properties in code:
 
@@ -108,7 +108,7 @@ The `SplitScreen2D` node will automatically rebuild its viewport tree whenever a
 the screen size changes. This should be fine, but if you need to disable it for performance reasons, you can adjust the
 Performance Optimization settings.
 
-![Performance Optimization](./screenshots/screenshot_06.png)
+![Performance Optimization](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_06.png)
 
 If you need to manually rebuild the viewport tree, you can call the `rebuild()` method:
 
