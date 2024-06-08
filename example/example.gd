@@ -85,6 +85,9 @@ func _on_player_removed(player):
 func _on_split_screen_rebuilt(reason: SplitScreen2D.RebuildReason):
 	var trigger: String
 	
+	# Resize background node when splitscreen is rebuilt.
+	background.set_size(split_screen.screen_size)
+	
 	match reason:
 		SplitScreen2D.RebuildReason.PLAYER_ADDED:
 			trigger = "player added"
