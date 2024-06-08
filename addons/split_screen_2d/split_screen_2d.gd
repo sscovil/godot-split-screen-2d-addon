@@ -181,10 +181,6 @@ func _build() -> void:
 	
 	viewport_container = BoxContainer.new()
 	viewport_container.set_alignment(BoxContainer.ALIGNMENT_CENTER)
-	viewport_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	
-	if players.size() > 1:
-		viewport_container.add_spacer(false)
 	
 	if player_count == 1:
 		viewport_container.add_child(_build_viewport(screen_size))

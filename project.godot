@@ -27,10 +27,6 @@ gdscript/warnings/unused_parameter=0
 window/size/viewport_width=2560
 window/size/viewport_height=1440
 
-[editor]
-
-movie_writer/movie_file="/Users/sscovil/Code/HotFireGames/viewport-2d/video_clip.avi"
-
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/split_screen_2d/plugin.cfg")
