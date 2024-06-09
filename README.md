@@ -62,8 +62,8 @@ Finally, you'll need to configure the `SplitScreen2D` by assigning it a `Play Ar
 
 ## Configuration
 
-Configure the `SplitScreen2D` node by selecting it in the scene tree and assigning the `Play Area`, `Min Players`, and
-`Max Players` properties in the inspector. 
+Configure the `SplitScreen2D` node by selecting it in the scene tree and assigning the `Play Area`, `Min Players`,
+`Max Players`, and `Transparent Background` properties in the inspector. 
 
 ![Example Configuration](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_05.png)
 
@@ -82,6 +82,8 @@ func _ready():
 	# Set the minimum and maximum number of players (default is 1 to 8).
 	split_screen_2d.min_players = 2
 	split_screen_2d.max_players = 4
+	# Give the viewports transparent backgrounds (default is `false`).
+	split_screen_2d.transparent_background = true
 ```
 
 Likewise, you can add player nodes in code:
@@ -96,11 +98,48 @@ func _input():
 	if Input.is_action_just_pressed("ui_accept"):
 		# Assuming `Player` is a class you created for your players.
 		var player = Player.new()
-		# Code to configure player goes here.
-		
 		# Add the player to the split screen.
 		split_screen_2d.add_player(player)
 ```
+
+You can also programatically add a `SplitScreen2D` node to your scene tree, using the static `from_config()` method:
+
+```gdscript
+class_name Example
+extends Node2D
+
+## This will be added to the scene tree when we call `initialize_split_screen()`.
+var split_screen_2d: SplitScreen2D
+
+func _ready():
+	var config := SplitScreen2DConfig.new()
+	config.play_area = load_level(1)
+	config.max_players = 2
+	
+	var split_screen = SplitScreen2D.from_config(config)
+	var players = [
+		load_player("Player 1"),
+		load_player("Player 2"),
+	]
+	
+	for player in players:
+		split_screen.add_player(player)
+	
+	add_child(split_screen)
+
+func load_level(level_number: int) -> Level:
+	# Replace this example code with the code you use to load your game levels.
+	var level = load("res://path/to/level_%d.tscn" % level_number).instantiate()
+	return level
+
+func load_player(player_name: String) -> Player:
+	# Replace this example code with the code you use to instantiate your players.
+	var player = load("res://path/to/player.tscn").instantiate()
+	player.set_player_name(player_name)
+	return player
+```
+
+The `SplitScreen2DConfig` class has all the same exported properties and default values as `SplitScreen2D`.
 
 ### Performance Optimization
 

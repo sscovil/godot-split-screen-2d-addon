@@ -1,17 +1,16 @@
+class_name Example
 extends Node2D
+
+const PlayerAvatar = Player.PlayerAvatar
 
 var PlayerScene: PackedScene = preload("res://example/players/player.tscn")
 
 @onready var background: ColorRect = $Background
-@onready var split_screen: SplitScreen2D = $SplitScreen2D
+@onready var split_screen: SplitScreen2D
 
 func _ready():
-	# Example of how to connect to each signal emitted by SplitScreen2D.
-	split_screen.max_players_reached.connect(_on_max_players_reached)
-	split_screen.min_players_reached.connect(_on_max_players_reached)
-	split_screen.player_added.connect(_on_player_added)
-	split_screen.player_removed.connect(_on_player_removed)
-	split_screen.split_screen_rebuilt.connect(_on_split_screen_rebuilt)
+	split_screen = $SplitScreen2D
+	_connect_signals()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -41,6 +40,14 @@ func remove_player() -> void:
 	split_screen.remove_player(player)
 
 
+func _connect_signals() -> void:
+	split_screen.max_players_reached.connect(_on_max_players_reached)
+	split_screen.min_players_reached.connect(_on_max_players_reached)
+	split_screen.player_added.connect(_on_player_added)
+	split_screen.player_removed.connect(_on_player_removed)
+	split_screen.split_screen_rebuilt.connect(_on_split_screen_rebuilt)
+
+
 func _get_random_color() -> Color:
 	return Color(randf(), randf(), randf(), 1.0)
 
@@ -52,8 +59,8 @@ func _get_random_offset() -> Vector2:
 	return Vector2(x, y)
 
 
-func _get_random_player_avatar() -> Player.PlayerAvatar:
-	return randi_range(0, 2) as Player.PlayerAvatar
+func _get_random_player_avatar() -> PlayerAvatar:
+	return randi_range(0, 2) as PlayerAvatar
 
 
 func _get_random_player_id() -> String:

@@ -1,6 +1,7 @@
 class_name SplitScreen2D
 extends Node2D
 
+
 ## Emitted when the maximum number of players has been reached or exceeded.
 ## 
 ## This signal is emitted _after_ the `player_added` signal, but before `split_screen_rebuilt`.
@@ -59,6 +60,9 @@ enum RebuildReason {
 ## The maximum number of player screens allowed; default is 8.
 @export_range(MIN_PLAYERS, MAX_PLAYERS) var max_players: int = MAX_PLAYERS
 
+## If set to `true`, each viewport will have a transparent background (default value is `false`).
+@export var transparent_background: bool = false
+
 @export_group("Performance Optimization")
 
 ## If set to `true` (default), the `SplitScreen2D` tree will be rebuilt each time a new player is
@@ -75,7 +79,7 @@ enum RebuildReason {
 
 ## Used to adjust the mandatory delay between calls to `rebuild()`; default is 0.2 seconds. Calls
 ## made during the delay will be consolidated into a single call after the delay.
-@export var rebuild_deleay: float = DEFAULT_REBUILD_DELAY
+@export var rebuild_delay: float = DEFAULT_REBUILD_DELAY
 
 ## Calculated field that is equivalent to `get_viewport().get_visible_rect().size`.
 var screen_size: Vector2: get = get_screen_size
@@ -96,7 +100,7 @@ var viewports: Array[SubViewport] = []
 ## is moved inside the primary viewport, and each of the player nodes are moved inside `play_area`.
 var viewport_container: BoxContainer
 
-## Used to determine if `rebuild()` has already been called within the `rebuild_deleay` period.
+## Used to determine if `rebuild()` has already been called within the `rebuild_delay` period.
 var _is_rebuilding: bool = false
 
 
@@ -104,6 +108,17 @@ func _ready() -> void:
 	_auto_detect_player_nodes()
 	_build()
 	_connect_signals()
+
+
+static func from_config(config: SplitScreen2DConfig) -> SplitScreen2D:
+	var split_screen = SplitScreen2D.new()
+	
+	for key in config.keys():
+		split_screen.set(key, config.get(key))
+	
+	split_screen.add_child(config.play_area)
+	
+	return split_screen
 
 
 func add_player(player: Node2D) -> void:
@@ -133,7 +148,7 @@ func rebuild(reason: RebuildReason = RebuildReason.EXTERNAL_REQUEST) -> void:
 		return
 	
 	_is_rebuilding = true
-	await get_tree().create_timer(rebuild_deleay).timeout
+	await get_tree().create_timer(rebuild_delay).timeout
 	_is_rebuilding = false
 	
 	_clear_viewport_container()
@@ -259,6 +274,7 @@ func _build_viewport(size: Vector2 = screen_size) -> SubViewportContainer:
 	viewport.set_handle_input_locally(false)
 	viewport.set_size(size)
 	viewport.set_update_mode(SubViewport.UPDATE_ALWAYS)
+	viewport.set_transparent_background(transparent_background)
 	
 	cameras.append(camera)
 	viewports.append(viewport)
