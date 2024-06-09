@@ -14,18 +14,12 @@
 
 ## Table of Contents
 
-- [Pre-Release Notice](#pre-release-notice)
 - [Version](#version)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
-
-## Pre-Release Notice
-
-This add-on is currently in a pre-release state. It has been tested and is working as expected, but it has not yet been
-used in a production environment. Please report any issues you encounter.
 
 ## Version
 
