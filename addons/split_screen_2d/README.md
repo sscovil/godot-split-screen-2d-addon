@@ -7,8 +7,8 @@
 </p>
 
 <p align="center">
-  <a href="https://godotengine.org/download/" target="_blank" style="text-decoration:none"><img alt="Godot v4.2+" src="https://img.shields.io/badge/Godot-v4.2+-%23478cbf?logo=godot-engine&logoColor=cyian&labelColor=CFC9C8" /></a>
-  <a href="https://github.com/sscovil/godot-split-screen-2d-addon/releases"  target="_blank" style="text-decoration:none"><img alt="Latest SplitScreen2D Release" src="https://img.shields.io/github/v/release/sscovil/godot-split-screen-2d-addon?include_prereleases&labelColor=CFC9C8"></a>
+  <a href="https://godotengine.org/download/" target="_blank" style="text-decoration:none"><img alt="Godot v4.2+" src="https://img.shields.io/badge/Godot-v4.2+-%23478cbf?logo=godot-engine&labelColor=silver" /></a>
+  <a href="https://github.com/sscovil/godot-split-screen-2d-addon/releases"  target="_blank" style="text-decoration:none"><img alt="Latest SplitScreen2D Release" src="https://img.shields.io/github/v/release/sscovil/godot-split-screen-2d-addon?include_prereleases&labelColor=silver&color=orange"></a>
   <a href="https://github.com/sscovil/godot-split-screen-2d-addon/" target="_blank" style="text-decoration:none"><img alt="GitHub Repo Stars" src="https://img.shields.io/github/stars/sscovil/godot-split-screen-2d-addon"></a>
 </p>
 
@@ -57,7 +57,7 @@ Finally, you'll need to configure the `SplitScreen2D` by assigning it a `Play Ar
 ## Configuration
 
 Configure the `SplitScreen2D` node by selecting it in the scene tree and assigning the `Play Area`, `Min Players`,
-`Max Players`, and `Transparent Background` properties in the inspector. 
+`Max Players`, and `Transparent Background` properties in the inspector.
 
 ![Example Configuration](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_05.png)
 
