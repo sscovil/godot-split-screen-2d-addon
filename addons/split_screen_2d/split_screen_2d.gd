@@ -195,19 +195,10 @@ func _build() -> void:
 	var player_count: int = players.size()
 	
 	viewport_container = BoxContainer.new()
-	viewport_container.set_alignment(BoxContainer.ALIGNMENT_CENTER)
 	
 	if player_count == 1:
 		viewport_container.add_child(_build_viewport(screen_size))
 		viewport_container.set_vertical(true)
-		
-	elif player_count < 4:
-		var size := Vector2(screen_size.x / player_count, screen_size.y)
-		
-		for i in range(player_count):
-			viewport_container.add_child(_build_viewport(size))
-		viewport_container.set_vertical(false)
-		
 	else:
 		var top := BoxContainer.new()
 		var bottom := BoxContainer.new()
@@ -216,10 +207,7 @@ func _build() -> void:
 		var top_size := Vector2(screen_size.x / top_half_player_count, screen_size.y / 2)
 		var bottom_size := Vector2(screen_size.x / bottom_half_player_count, screen_size.y / 2)
 		
-		top.set_alignment(BoxContainer.ALIGNMENT_CENTER)
 		top.set_vertical(false)
-		
-		bottom.set_alignment(BoxContainer.ALIGNMENT_CENTER)
 		bottom.set_vertical(false)
 		
 		for i in range(top_half_player_count):
