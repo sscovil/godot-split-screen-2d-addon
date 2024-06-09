@@ -196,42 +196,47 @@ For an example of how to connect to these signals, see the [example project](./e
 
 ## Troubleshooting
 
-### Play Area Is Not Visible
+### Play area is not visible
 
 If your play area is not visible, ensure that it is a child of the `SplitScreen2D` node in the scene tree and that it
 is assigned to the `Play Area` property in the inspector (or the `play_area` property in code).
 
-### Players Are Not Visible
+### Players are not visible
 
 If your players are not visible, ensure that they are children of the `SplitScreen2D` node in the scene tree.
 
-### Players Fly Off Screen
+### Players fly off the screen
 
 If your players fly off the screen, ensure that you have placed them in unique positions within the play area. This is
 not an issue with SplitScreen2D, but it's easy to overlook when setting up your scene and is definitely a mistake that
 was made while developing this add-on. 😆
 
-### Unexpected Behavior With Players
+### Unexpected behavior with players or play area
 
 One thing to be aware of is that, under the hood, SplitScreen2D will reparent the play area and player nodes to be
 children of the primary viewport. This is necessary to achieve the split-screen effect, but in theory it could cause
 issues if you are doing something unusual with your nodes. If you encounter unexpected behavior, try to simplify your
 scene and isolate the issue.
 
-### Split Screen Not Rebuilding On Player Add/Remove
+### Split screen not rebuilding on player add/remove
 
 Ensure that the `rebuild_when_player_added` and `rebuild_when_player_removed` properties are set to `true` (default) in
 the inspector or in code.
 
-### Split Screen Not Rebuilding On Screen Resize
+### Split screen is not rebuilding on screen resize
 
 Ensure that the `rebuild_when_screen_resized` property is set to `true` (default) in the inspector or in code.
 
-### I Can't Change The Color Of Split Screen Borders
+### I can't change the color of split screen borders
 
 The split screen borders are not drawn; they are just transparent empty space between the viewports. You can place a
-`ColorRect` node above the `SplitScreen2D` node in your scene tree to colorize to the spacers, as was done in the
+`ColorRect` node above the `SplitScreen2D` node in your scene tree to colorize the space between, as was done in the
 [example project](./example/example.gd).
+
+### I can't see my background image behind the split screen panels
+
+If you want to be able to see whatever is behind the split screen panels, set the `transparent_background` property to
+`true` in the inspector or in code. This setting gets applied to the `transparent_bg` property of each `SubViewport`.
 
 ## License
 
