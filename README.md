@@ -108,7 +108,6 @@ You can also programatically add a `SplitScreen2D` node to your scene tree, usin
 class_name Example
 extends Node2D
 
-## This will be added to the scene tree when we call `initialize_split_screen()`.
 var split_screen_2d: SplitScreen2D
 
 func _ready():
