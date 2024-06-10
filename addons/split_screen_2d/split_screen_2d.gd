@@ -29,6 +29,15 @@ signal player_removed(player: Node2D)
 ## an external script.
 signal split_screen_rebuilt(reason: RebuildReason)
 
+## Used to indicate wheter `rebuild()` was called after adding or removing a player, resizing the
+## screen, or from an external script.
+enum RebuildReason {
+	EXTERNAL_REQUEST,
+	PLAYER_ADDED,
+	PLAYER_REMOVED,
+	SCREEN_SIZE_CHANGED,
+}
+
 ## Default delay (in seconds) before rebuilding the `SplitScreen2D` tree, recommended to avoid
 ## a performance hit when calling the `rebuild()` too many times in rapid succession (i.e. when
 ## the window is being resized).
@@ -39,15 +48,6 @@ const MIN_PLAYERS: int = 1
 
 ## Maximum number of player screens supported by this plugin.
 const MAX_PLAYERS: int = 8
-
-## Used to indicate wheter `rebuild()` was called after adding or removing a player, resizing the
-## screen, or from an external script.
-enum RebuildReason {
-	EXTERNAL_REQUEST,
-	PLAYER_ADDED,
-	PLAYER_REMOVED,
-	SCREEN_SIZE_CHANGED,
-}
 
 ## One child node must be designated as the play area. This will be reparented and become a child
 ## node of the primary viewport. Typically, this is a `TileMap` (or an instance of a scene that
@@ -192,33 +192,41 @@ func _auto_detect_player_nodes() -> void:
 
 
 func _build() -> void:
-	var player_count: int = players.size()
+	if players.size() > 1:
+		return _build_multiplayer()
 	
 	viewport_container = BoxContainer.new()
+	viewport_container.add_child(_build_viewport(screen_size))
+	viewport_container.set_vertical(true)
 	
-	if player_count == 1:
-		viewport_container.add_child(_build_viewport(screen_size))
-		viewport_container.set_vertical(true)
-	else:
-		var top := BoxContainer.new()
-		var bottom := BoxContainer.new()
-		var top_half_player_count: int = floor(player_count / 2)
-		var bottom_half_player_count: int = top_half_player_count + (player_count % 2)
-		var top_size := Vector2(screen_size.x / top_half_player_count, screen_size.y / 2)
-		var bottom_size := Vector2(screen_size.x / bottom_half_player_count, screen_size.y / 2)
-		
-		top.set_vertical(false)
-		bottom.set_vertical(false)
-		
-		for i in range(top_half_player_count):
-			top.add_child(_build_viewport(top_size))
-		
-		for i in range(bottom_half_player_count):
-			bottom.add_child(_build_viewport(bottom_size))
-		
-		viewport_container.add_child(top)
-		viewport_container.add_child(bottom)
-		viewport_container.set_vertical(true)
+	add_child(viewport_container)
+	_build_play_area()
+
+
+func _build_multiplayer() -> void:
+	var player_count: int = players.size()
+
+	var top := BoxContainer.new()
+	var top_half_player_count: int = floor(player_count / 2)
+	var top_size := Vector2(screen_size.x / top_half_player_count, screen_size.y / 2)
+
+	var bottom := BoxContainer.new()
+	var bottom_half_player_count: int = top_half_player_count + (player_count % 2)
+	var bottom_size := Vector2(screen_size.x / bottom_half_player_count, screen_size.y / 2)
+	
+	top.set_vertical(false)
+	bottom.set_vertical(false)
+	
+	for i in range(top_half_player_count):
+		top.add_child(_build_viewport(top_size))
+	
+	for i in range(bottom_half_player_count):
+		bottom.add_child(_build_viewport(bottom_size))
+	
+	viewport_container = BoxContainer.new()
+	viewport_container.add_child(top)
+	viewport_container.add_child(bottom)
+	viewport_container.set_vertical(true)
 	
 	add_child(viewport_container)
 	_build_play_area()
