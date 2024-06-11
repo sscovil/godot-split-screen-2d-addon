@@ -253,24 +253,24 @@ func _build_multiplayer() -> void:
 
 	# Create containers to hold the viewports for the top and bottom halves of the screen.
 	var top := BoxContainer.new()
-	var top_half_player_count: int = floor(player_count / 2)
-	var top_size := Vector2(screen_size.x / top_half_player_count, screen_size.y / 2)
+	var top_player_count: int = floor(player_count / 2)
+	var top_size := Vector2(screen_size.x / top_player_count, screen_size.y / 2)
 
 	# If the number of players is odd, the bottom half will have one more player than the top.
 	var bottom := BoxContainer.new()
-	var bottom_half_player_count: int = top_half_player_count + (player_count % 2)
-	var bottom_size := Vector2(screen_size.x / bottom_half_player_count, screen_size.y / 2)
+	var bottom_player_count: int = top_player_count + (player_count % 2)
+	var bottom_size := Vector2(screen_size.x / bottom_player_count, screen_size.y / 2)
 
 	# Set the orientation of the containers to horizontal, so the viewports are side by side.
 	top.set_vertical(false)
 	bottom.set_vertical(false)
 
 	# Add viewports to the top container.
-	for i in range(top_half_player_count):
+	for i in range(top_player_count):
 		top.add_child(_build_viewport(top_size))
 
 	# Add viewports to the bottom container.
-	for i in range(bottom_half_player_count):
+	for i in range(bottom_player_count):
 		bottom.add_child(_build_viewport(bottom_size))
 
 	# Add the top and bottom containers to the viewport container.
