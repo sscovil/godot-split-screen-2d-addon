@@ -18,6 +18,8 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
+- [Methods](#methods)
+- [Signals](#signals)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
@@ -35,7 +37,7 @@ Let's install SplitScreen2D into your Godot project:
 
 Now, let's verify you have correctly installed SplitScreen2D:
 
-- You have this folder path `res://addons/split_screen_2d`.
+- You have this folder path `res://addons/split_screen`.
 - Head to `Project > Project Settings`.
 - Click the `Plugins` tab.
 - Tick the `enabled` button next to SplitScreen2D.
@@ -56,89 +58,53 @@ Finally, you'll need to configure the `SplitScreen2D` by assigning it a `Play Ar
 
 ## Configuration
 
-Configure the `SplitScreen2D` node by selecting it in the scene tree and assigning the `Play Area`, `Min Players`,
-`Max Players`, and `Transparent Background` properties in the inspector. 
+The following exported values can be modified in the Godot Editor Inspector, or programmatically
+by directly accessing the properties of the node.
+
+| Inspector Label             | Property Name                 | Type   | Default  |
+|-----------------------------|-------------------------------|--------|----------|
+| Play Area                   | `play_area`                   | Node2D | `null`   |
+| Min Players                 | `min_players`                 | int    | `1`      |
+| Max Players                 | `max_players`                 | int    | `8`      |
+| Transparent Background      | `transparent_background`      | bool   | `false`  |
+
+In the inspector, you can set these properties like so:
 
 ![Example Configuration](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_05.png)
 
-Alternatively, you can set these properties in code:
+Alternatively, you can set them in code:
 
 ```gdscript
 class_name Example
 extends Node2D
 
-@onready var split_screen_2d: SplitScreen2D = $SplitScreen2D
+@onready var split_screen: SplitScreen2D = $SplitScreen2D
 @onready var level: TileMap = $SplitScreen2D/TileMap
 
 func _ready():
 	# The play area can be any Node2D that is a child of SplitScreen2D, such as a TileMap.
-	split_screen_2d.play_area = level
+	split_screen.play_area = level
 	# Set the minimum and maximum number of players (default is 1 to 8).
-	split_screen_2d.min_players = 2
-	split_screen_2d.max_players = 4
+	split_screen.min_players = 2
+	split_screen.max_players = 4
 	# Give the viewports transparent backgrounds (default is `false`).
-	split_screen_2d.transparent_background = true
+	split_screen.transparent_background = true
 ```
-
-Likewise, you can add player nodes in code:
-
-```gdscript
-class_name Example
-extends Node2D
-
-@onready var split_screen_2d: SplitScreen2D = $SplitScreen2D
-
-func _input():
-	if Input.is_action_just_pressed("ui_accept"):
-		# Assuming `Player` is a class you created for your players.
-		var player = Player.new()
-		# Add the player to the split screen.
-		split_screen_2d.add_player(player)
-```
-
-You can also programatically add a `SplitScreen2D` node to your scene tree, using the static `from_config()` method:
-
-```gdscript
-class_name Example
-extends Node2D
-
-var split_screen_2d: SplitScreen2D
-
-func _ready():
-	var config := SplitScreen2DConfig.new()
-	config.play_area = load_level(1)
-	config.max_players = 2
-	
-	var split_screen = SplitScreen2D.from_config(config)
-	var players = [
-		load_player("Player 1"),
-		load_player("Player 2"),
-	]
-	
-	for player in players:
-		split_screen.add_player(player)
-	
-	add_child(split_screen)
-
-func load_level(level_number: int) -> Level:
-	# Replace this example code with the code you use to load your game levels.
-	var level = load("res://path/to/level_%d.tscn" % level_number).instantiate()
-	return level
-
-func load_player(player_name: String) -> Player:
-	# Replace this example code with the code you use to instantiate your players.
-	var player = load("res://path/to/player.tscn").instantiate()
-	player.set_player_name(player_name)
-	return player
-```
-
-The `SplitScreen2DConfig` class has all the same exported properties and default values as `SplitScreen2D`.
 
 ### Performance Optimization
 
 The `SplitScreen2D` node will automatically rebuild its viewport tree whenever a player is added or removed, or when
 the screen size changes. This should be fine, but if you need to disable it for performance reasons, you can adjust the
-Performance Optimization settings.
+following Performance Optimization settings:
+
+| Inspector Label             | Property Name                 | Type   | Default |
+|-----------------------------|-------------------------------|--------|---------|
+| Rebuild When Player Added   | `rebuild_when_player_added`   | bool   | `true`  |
+| Rebuild When Player Removed | `rebuild_when_player_removed` | bool   | `true`  |
+| Rebuild When Screen Resized | `rebuild_when_screen_resized` | bool   | `true`  |
+| Rebuild Delay               | `rebuild_delay`               | float  | `0.2`   |
+
+In the inspector, you can set these properties like so:
 
 ![Performance Optimization](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_06.png)
 
@@ -148,33 +114,113 @@ If you need to manually rebuild the viewport tree, you can call the `rebuild()` 
 class_name Example
 extends Node2D
 
-@onready var split_screen_2d: SplitScreen2D = $SplitScreen2D
+@onready var split_screen: SplitScreen2D = $SplitScreen2D
 
 func _ready():
 	# Disable automatic rebuilding of the viewport tree.
-	split_screen_2d.rebuild_when_player_added = false
-	split_screen_2d.rebuild_when_player_removed = false
-	split_screen_2d.rebuild_when_screen_resized = false
+	split_screen.rebuild_when_player_added = false
+	split_screen.rebuild_when_player_removed = false
+	split_screen.rebuild_when_screen_resized = false
 
 func add_player(new_player: Player):
 	# Add the player to the split screen.
-	split_screen_2d.add_player(new_player)
+	split_screen.add_player(new_player)
 	# Rebuild the viewport tree.
-	split_screen_2d.rebuild()
+	split_screen.rebuild()
 
 func remove_player(player: Player):
 	# Set to true (default) if the player node should be deleted; otherwise, set to false.
 	var should_queue_free: bool = false
 	# Remove the player from the split screen.
-	split_screen_2d.remove_player(player, should_queue_free)
+	split_screen.remove_player(player, should_queue_free)
 	# Rebuild the viewport tree.
-	split_screen_2d.rebuild()
+	split_screen.rebuild()
 	# Optionally, do something with the player node if you kept it.
 	player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
 ```
 
 Again, this should not be necessary for most projects, but it is available if you need it—or if you're  just a control
 freak.
+
+### SplitScreen2DConfig Class
+
+You can also use the `SplitScreen2DConfig` class to configure a `SplitScreen2D` node programmatically:
+
+```gdscript
+class_name Example
+extends Node2D
+
+# Assuming `TileMap` is your play area and your players are `CharacterBody2D` nodes.
+@onready var level: TileMap = $TileMap
+@onready var players: Array[CharacterBody2D] = [$Player1, $Player2]
+
+@onready var split_screen: SplitScreen2D
+
+func _ready():
+    var config := SplitScreen2DConfig.new()
+    config.play_area = level
+    config.min_players = 2
+    config.max_players = 4
+    config.transparent_background = true
+    config.rebuild_when_player_added = false
+    config.rebuild_when_player_removed = false
+    config.rebuild_when_screen_resized = false
+    config.rebuild_delay = 0.1
+    
+    split_screen = SplitScreen2D.from_config(config)
+    
+	for player in players:
+		split_screen.add_player(player)
+	
+	add_child(split_screen)
+```
+
+The `SplitScreen2DConfig` class has all the same exported properties and default values as `SplitScreen2D`.
+
+## Methods
+
+The `SplitScreen2D` node has the following methods:
+
+- `add_player(player: Node2D)`: Adds a player to the split screen.
+- `get_screen_size() -> Vector2`: Returns the size of the screen.
+- `rebuild()`: Rebuilds the viewport tree manually.
+- `remove_player(player: Node2D, queue_free: bool = true)`: Removes a player from the split screen.
+
+### Adding Players
+
+```gdscript
+class_name Example
+extends Node2D
+
+@onready var split_screen: SplitScreen2D = $SplitScreen2D
+
+func _input():
+	if Input.is_action_just_pressed("ui_accept"):
+		# Assuming `Player` is a class you created for your players.
+		var player = Player.new()
+		# Add the player to the split screen.
+		split_screen.add_player(player)
+```
+
+### Removing Players
+
+```gdscript
+class_name Example
+extends Node2D
+
+@onready var split_screen: SplitScreen2D = $SplitScreen2D
+
+func _input():
+    if Input.is_action_just_pressed("ui_cancel"):
+        # Assuming `Player` is a class you created for your players.
+        var player = get_node("Player")
+        # Remove the player from the split screen.
+        split_screen.remove_player(player)
+```
+
+### Rebuilding the Viewport Tree
+
+See the example above, in the [Performance Optimization](#performance-optimization) section.
 
 ## Signals
 
@@ -185,6 +231,13 @@ The `SplitScreen2D` node emits the following signals:
 - `player_added(player: Node2D)`: Emitted when a player is added to the split screen.
 - `player_removed(player: Node2D)`: Emitted when a player is removed from the split screen.
 - `split_screen_rebuilt(reason: RebuildReason)`: Emitted when the `SplitScreen2D` tree is rebuilt.
+
+The `RebuildReason` enum has the following values:
+
+- `PLAYER_ADDED`: A new player was added.
+- `PLAYER_REMOVED`: A player was removed.
+- `SCREEN_RESIZED`: The screen size changed.
+- `EXTERNAL_REQUEST`: The `rebuild()` method was called directly, from code outside the plugin.
 
 For an example of how to connect to these signals, see the [example project](./example/example.gd).
 
