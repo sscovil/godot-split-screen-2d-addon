@@ -137,13 +137,18 @@ func add_player(player: Node2D) -> void:
 			hint = "Maximum number of players is %d." % MAX_PLAYERS
 		push_warning("Cannot add player. %s" % hint)
 		return
-	
+
+	# Add the player to the players array so it can be accessed later.
 	players.append(player)
+
+	# Emit the player_added signal.
 	player_added.emit(player)
-	
+
+	# If the minimum number of players has been reached, emit the min_players_reached signal.
 	if players.size() <= min_players:
 		min_players_reached.emit(players.size())
-	
+
+	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_added:
 		rebuild(RebuildReason.PLAYER_ADDED)
 
@@ -160,14 +165,17 @@ func get_screen_size() -> Vector2:
 func rebuild(reason: RebuildReason = RebuildReason.EXTERNAL_REQUEST) -> void:
 	if _is_rebuilding or !is_inside_tree():
 		return
-	
+
+	# Ensure the tree is only rebuilt once after the configured delay time (in seconds).
 	_is_rebuilding = true
 	await get_tree().create_timer(rebuild_delay).timeout
 	_is_rebuilding = false
-	
+
+	# Clear the viewport container and rebuild the SplitScreen2D tree.
 	_clear_viewport_container()
 	_build()
-	
+
+	# Emit the split_screen_rebuilt signal.
 	split_screen_rebuilt.emit(reason)
 
 
@@ -181,16 +189,22 @@ func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
 			hint = "Minimum number of players is %d." % MIN_PLAYERS
 		push_warning("Cannot remove player. %s" % hint)
 		return
-	
+
+	# Remove the player from the players array.
 	players.pop_at(players.find(player))
+
+	# Emit the player_removed signal.
 	player_removed.emit(player)
-	
+
+	# If the minimum number of players has been reached, emit the min_players_reached signal.
 	if players.size() >= max_players:
 		max_players_reached.emit(players.size())
-	
+
+	# Release the player node from memory, if `should_queue_free` parameter is `true` (default).
 	if should_queue_free:
 		player.queue_free()
-	
+
+	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_removed:
 		rebuild(RebuildReason.PLAYER_REMOVED)
 
@@ -318,11 +332,14 @@ func _build_viewport(size: Vector2 = screen_size) -> SubViewportContainer:
 
 	# Add the camera to the viewport.
 	container.add_child(viewport)
+
 	# Make the container expand to fill the space allocated to it.
 	container.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	# Add the camera to the viewport.
 	viewport.add_child(camera)
+
+	# Configure the viewport.
 	viewport.set_disable_3d(true)
 	viewport.set_size(size)
 	viewport.set_update_mode(SubViewport.UPDATE_ALWAYS)
