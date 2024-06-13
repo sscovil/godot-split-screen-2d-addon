@@ -262,7 +262,7 @@ func remove_player(player: Player):
 	player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
 ```
 
-### `remove_player(player: Node2D, queue_free: bool = true)`
+### remove_player(player: Node2D, queue_free: bool = true)
 
 This method can be used to remove a player from the split screen interface. By default, it will call
 `queue_free()` on the player node. This can be prevented by passing `false` as the second parameter
