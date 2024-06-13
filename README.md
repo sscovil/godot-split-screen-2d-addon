@@ -93,8 +93,8 @@ func _ready():
 
 ### Performance Optimization
 
-The `SplitScreen2D` node will automatically rebuild its viewport tree whenever a player is added or removed, or when
-the screen size changes. This should be fine, but if you need to disable it for performance reasons, you can adjust the
+The `SplitScreen2D` node will automatically rebuild its node tree whenever a player is added or removed, or when the
+screen size changes. This should be fine, but if you need to disable it for performance reasons, you can adjust the
 following Performance Optimization settings:
 
 | Inspector Label             | Property Name                 | Type   | Default |
@@ -108,7 +108,7 @@ In the inspector, you can set these properties like so:
 
 ![Performance Optimization](https://raw.githubusercontent.com/sscovil/godot-split-screen-2d-addon/main/screenshots/screenshot_06.png)
 
-If you need to manually rebuild the viewport tree, you can call the `rebuild()` method:
+If you need to manually rebuild the `SplitScreen2D` tree, you can call the `rebuild()` method:
 
 ```gdscript
 class_name Example
@@ -117,7 +117,7 @@ extends Node2D
 @onready var split_screen: SplitScreen2D = $SplitScreen2D
 
 func _ready():
-	# Disable automatic rebuilding of the viewport tree.
+	# Disable automatic rebuilding of the `SplitScreen2D` tree.
 	split_screen.rebuild_when_player_added = false
 	split_screen.rebuild_when_player_removed = false
 	split_screen.rebuild_when_screen_resized = false
@@ -125,7 +125,7 @@ func _ready():
 func add_player(new_player: Player):
 	# Add the player to the split screen.
 	split_screen.add_player(new_player)
-	# Rebuild the viewport tree.
+	# Rebuild the `SpitScreen2D` tree.
 	split_screen.rebuild()
 
 func remove_player(player: Player):
@@ -133,7 +133,7 @@ func remove_player(player: Player):
 	var should_queue_free: bool = false
 	# Remove the player from the split screen.
 	split_screen.remove_player(player, should_queue_free)
-	# Rebuild the viewport tree.
+	# Rebuild the `SpitScreen2D` tree.
 	split_screen.rebuild()
 	# Optionally, do something with the player node if you kept it.
 	player.reparent(inactive_players)  # Assuming `inactive_players` is a Node2D in your scene.
@@ -157,18 +157,18 @@ extends Node2D
 @onready var split_screen: SplitScreen2D
 
 func _ready():
-    var config := SplitScreen2DConfig.new()
-    config.play_area = level
-    config.min_players = 2
-    config.max_players = 4
-    config.transparent_background = true
-    config.rebuild_when_player_added = false
-    config.rebuild_when_player_removed = false
-    config.rebuild_when_screen_resized = false
-    config.rebuild_delay = 0.1
-    
-    split_screen = SplitScreen2D.from_config(config)
-    
+	var config := SplitScreen2DConfig.new()
+	config.play_area = level
+	config.min_players = 2
+	config.max_players = 4
+	config.transparent_background = true
+	config.rebuild_when_player_added = false
+	config.rebuild_when_player_removed = false
+	config.rebuild_when_screen_resized = false
+	config.rebuild_delay = 0.1
+	
+	split_screen = SplitScreen2D.from_config(config)
+	
 	for player in players:
 		split_screen.add_player(player)
 	
@@ -182,8 +182,9 @@ The `SplitScreen2DConfig` class has all the same exported properties and default
 The `SplitScreen2D` node has the following methods:
 
 - `add_player(player: Node2D)`: Adds a player to the split screen.
+- `get_primary_viewport()`: Returns the main viewport in the `SpitScreen2D` tree.
 - `get_screen_size() -> Vector2`: Returns the size of the screen.
-- `rebuild()`: Rebuilds the viewport tree manually.
+- `rebuild()`: Rebuilds the `SpitScreen2D` tree manually.
 - `remove_player(player: Node2D, queue_free: bool = true)`: Removes a player from the split screen.
 
 ### Adding Players
@@ -211,14 +212,14 @@ extends Node2D
 @onready var split_screen: SplitScreen2D = $SplitScreen2D
 
 func _input():
-    if Input.is_action_just_pressed("ui_cancel"):
-        # Assuming `Player` is a class you created for your players.
-        var player = get_node("Player")
-        # Remove the player from the split screen.
-        split_screen.remove_player(player)
+	if Input.is_action_just_pressed("ui_cancel"):
+		# Assuming `Player` is a class you created for your players.
+		var player = get_node("Player")
+		# Remove the player from the split screen.
+		split_screen.remove_player(player)
 ```
 
-### Rebuilding the Viewport Tree
+### Rebuilding the SplitScreen2D Tree
 
 See the example above, in the [Performance Optimization](#performance-optimization) section.
 

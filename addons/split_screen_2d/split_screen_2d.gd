@@ -92,6 +92,10 @@ var cameras: Array[Camera2D] = []
 ## removed. 
 var players: Array[Node2D] = []
 
+## Returns the primary viewport, which is referenced the first viewport that gets added when the
+## `SplitScreen2D` tree is built/rebuilt.
+var primary_viewport: SubViewport: get = get_primary_viewport
+
 ## An array of `SubViewport` nodes, each corresponding to the player in `players` at the same index.
 var viewports: Array[SubViewport] = []
 
@@ -151,6 +155,12 @@ func add_player(player: Node2D) -> void:
 	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_added:
 		rebuild(RebuildReason.PLAYER_ADDED)
+
+
+## Returns the primary viewport, which is referenced the first viewport that gets added when the
+## `SplitScreen2D` tree is built/rebuilt.
+func get_primary_viewport() -> SubViewport:
+	return viewports[0] if viewports and viewports.size() else null
 
 
 ## Get the size of the screen, which is equivalent to `get_viewport().get_visible_rect().size`.
@@ -294,7 +304,7 @@ func _build_play_area() -> void:
 	var world_2d: World2D
 
 	# Reparent the play area to the first viewport.
-	play_area.reparent(viewports[0])
+	play_area.reparent(primary_viewport)
 
 	# Reparent each player to the play area.
 	for i in range(players.size()):
