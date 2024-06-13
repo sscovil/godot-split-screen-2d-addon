@@ -25,7 +25,7 @@
 
 ## Version
 
-SplitScreen2D **requires at least Godot 4.2**.
+SplitScreen2D **requires at least Godot 4.2**. It may work with earlier versions, but they have not been tested.
 
 ## Installation
 
@@ -266,7 +266,7 @@ func remove_player(player: Player):
 
 This method can be used to remove a player from the split screen interface. By default, it will call
 `queue_free()` on the player node. This can be prevented by passing `false` as the second parameter
-value. 
+value.
 
 ```gdscript
 class_name Example

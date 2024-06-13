@@ -25,7 +25,7 @@
 
 ## Version
 
-SplitScreen2D **requires at least Godot 4.2**.
+SplitScreen2D **requires at least Godot 4.2**. It may work with earlier versions, but they have not been tested.
 
 ## Installation
 
