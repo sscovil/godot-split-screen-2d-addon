@@ -195,7 +195,7 @@ reparented to.
 This helper method returns the size of the screen, as a `Vector2`. It is the equivalent of calling
 `get_viewport().get_visible_rect().size`.
 
-### make_camera_stop_tracking_node(camera: Camera2D, player: Node2D)
+### make_camera_stop_tracking_player(camera: Camera2D, player: Node2D)
 
 This method will clear the remote node path of the `RemoteTransform2D` node assigned to a given
 player. This is useful if, for example, you want to stop the camera from tracking a player when they
@@ -220,7 +220,7 @@ func _on_player_fell_off_cliff():
 	split_screen.make_camera_track_player()
 ```
 
-### make_camera_track_node(camera: Camera2D, player: Node2D)
+### make_camera_track_player(camera: Camera2D, player: Node2D)
 
 This method is used internally to make each split screen viewport camera track the corresponding
 player. If you make use of the `make_camera_stop_tracking_node()` described above, you can use this
