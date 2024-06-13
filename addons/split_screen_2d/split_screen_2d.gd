@@ -96,6 +96,11 @@ var players: Array[Node2D] = []
 ## `SplitScreen2D` tree is built/rebuilt.
 var primary_viewport: SubViewport: get = get_primary_viewport
 
+## A dictionary used to keep track of which `RemoteTransform2D` nodes belong to which players,
+## where the key is the value of `player.get_instance_id()`, and the value is the value of
+## `get_path()` for the `RemoteTransform2D` node assigned to that player.
+var remotes: Dictionary = {}
+
 ## An array of `SubViewport` nodes, each corresponding to the player in `players` at the same index.
 var viewports: Array[SubViewport] = []
 
@@ -157,8 +162,15 @@ func add_player(player: Node2D) -> void:
 		rebuild(RebuildReason.PLAYER_ADDED)
 
 
-## Returns the primary viewport, which is referenced the first viewport that gets added when the
-## `SplitScreen2D` tree is built/rebuilt.
+## Returns the `Camera2D` that is assigned to a given player.
+func get_player_camera(player: Node2D) -> Camera2D:
+	var index: int = players.find(player)
+	return cameras[index]
+
+
+## Returns the primary viewport, which is the first viewport that gets added when the
+## `SplitScreen2D` tree is built/rebuilt. This is also the viewport that the `play_area` node
+## gets reparented to.
 func get_primary_viewport() -> SubViewport:
 	return viewports[0] if viewports and viewports.size() else null
 
@@ -166,6 +178,35 @@ func get_primary_viewport() -> SubViewport:
 ## Get the size of the screen, which is equivalent to `get_viewport().get_visible_rect().size`.
 func get_screen_size() -> Vector2:
 	return get_viewport().get_visible_rect().size
+
+
+## If a `RemoteTransform2D` has been assigned to the given player, clear its remote node path. This
+## is useful if, for example, you want to stop the camera from tracking a player when they fall off
+## a cliff. You can then reposition the player, and call `make_camera_track_node()` to resume
+## tracking the player.
+func make_camera_stop_tracking_player(camera: Camera2D, player: Node2D) -> void:
+	var node_id: int = player.get_instance_id()
+	var remote: RemoteTransform2D
+	
+	if remotes.has(node_id):
+		remote = player.get_node(remotes[node_id])
+		remote.set_remote_node("")
+
+
+## Adds a `RemoteTransform2D` node as a child of the given player (if not yet assigned), and set
+## the given camera as its remote node. This has the effect of making the camera track the node.
+func make_camera_track_player(camera: Camera2D, player: Node2D) -> void:
+	var node_id: int = player.get_instance_id()
+	var remote: RemoteTransform2D
+	
+	if remotes.has(node_id):
+		remote = player.get_node(remotes[node_id])
+		remote.set_remote_node(camera.get_path())
+	else:
+		remote = RemoteTransform2D.new()
+		remote.set_remote_node(camera.get_path())
+		player.add_child(remote)
+		remotes[node_id] = player.get_path_to(remote)
 
 
 ## Rebuild the `SplitScreen2D` tree after a delay of `rebuild_delay` seconds. This method is used
@@ -199,21 +240,26 @@ func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
 			hint = "Minimum number of players is %d." % MIN_PLAYERS
 		push_warning("Cannot remove player. %s" % hint)
 		return
-
+	
 	# Remove the player from the players array.
 	players.pop_at(players.find(player))
-
+	
+	# Remove the RemoteTransform2D assigned to the player.
+	var key: int = player.get_instance_id()
+	player.get_node(remotes[key]).queue_free()
+	remotes.erase(key)
+	
 	# Emit the player_removed signal.
 	player_removed.emit(player)
-
+	
 	# If the minimum number of players has been reached, emit the min_players_reached signal.
 	if players.size() >= max_players:
 		max_players_reached.emit(players.size())
-
+	
 	# Release the player node from memory, if `should_queue_free` parameter is `true` (default).
 	if should_queue_free:
 		player.queue_free()
-
+	
 	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_removed:
 		rebuild(RebuildReason.PLAYER_REMOVED)
@@ -231,7 +277,7 @@ func _auto_detect_player_nodes() -> void:
 		if child == play_area:
 			continue  # Ignore this node.
 		
-		if is_instance_of(child, Node2D) and child not in players:
+		if child is Node2D and child not in players:
 			players.append(child)  # Assume this node is a player.
 
 
@@ -302,28 +348,22 @@ func _build_multiplayer() -> void:
 ## world coordinates and physics space.
 func _build_play_area() -> void:
 	var world_2d: World2D
-
+	
 	# Reparent the play area to the first viewport.
-	play_area.reparent(primary_viewport)
-
+	_safe_reparent(play_area, primary_viewport)
+	
 	# Reparent each player to the play area.
 	for i in range(players.size()):
 		var player := players[i]
 		var camera := cameras[i]
 		var viewport := viewports[i]
-		var remote_transform := RemoteTransform2D.new()
-
-		# Make the camera follow the player.
-		remote_transform.set_remote_node(camera.get_path())
-		player.add_child(remote_transform)
-
+		
+		# Make the camera track the player.
+		make_camera_track_player(camera, player)
+		
 		# Reparent the player to the play area.
-		if player.get_parent():
-			player.reparent(play_area)
-		else:
-			# Cannot reparent a node that has no parent.
-			play_area.add_child(player)
-
+		_safe_reparent(player, play_area)
+		
 		# Set the `World2D` node for all viewports to that of the first viewport.
 		if i == 0:
 			world_2d = viewport.get_world_2d()
@@ -379,7 +419,7 @@ func _clear_viewport_container() -> void:
 	viewports = []
 
 	# Remove the viewport container from the scene tree.
-	viewport_container.queue_free()
+	viewport_container.free()
 
 
 ## Connect signals to the appropriate event handlers.
@@ -399,7 +439,7 @@ func _on_child_entered_tree(node: Node) -> void:
 	if node == play_area:
 		return
 	
-	if node in get_children() and is_instance_of(node, Node2D) and node not in players:
+	if node in get_children() and node is Node2D and node not in players:
 		# Assume this node is a new player and add it.
 		add_player(node)
 
@@ -411,7 +451,7 @@ func _on_child_exiting_tree(node: Node) -> void:
 	if node == play_area:
 		return
 	
-	if node in get_children() and is_instance_of(node, Node2D) and node in players:
+	if node in get_children() and node is Node2D and node in players:
 		# Remove this player node, but don't call queue_free() since it's already exiting.
 		remove_player(node, false)
 
@@ -421,3 +461,13 @@ func _on_child_exiting_tree(node: Node) -> void:
 func _on_screen_size_changed() -> void:
 	if rebuild_when_screen_resized:
 		rebuild(RebuildReason.SCREEN_SIZE_CHANGED)
+
+
+## Reparent a node if it already has a parent; otherwise, just add the node as a child to the new
+## parent node. This is used to avoid throwing an error when trying to reparent a node that does
+## not yet have a parent.
+func _safe_reparent(node: Node, new_parent: Node) -> void:
+	if node.get_parent():
+		node.reparent(new_parent)
+	else:
+		new_parent.add_child(node)
