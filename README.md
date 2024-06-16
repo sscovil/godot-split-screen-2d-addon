@@ -217,7 +217,7 @@ func _on_player_fell_off_cliff():
 	var camera = split_screen.get_player_camera(player)
 	split_screen.make_camera_stop_tracking_player(camera, player)
 	player.position = Vector2.ZERO  # Move back to starting position.
-	split_screen.make_camera_track_player()
+	split_screen.make_camera_track_player(camera, player)
 ```
 
 ### make_camera_track_player(camera: Camera2D, player: Node2D)
