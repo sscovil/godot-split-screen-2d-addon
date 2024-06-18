@@ -3,6 +3,8 @@ extends Example
 
 ## Note that this class extends the Example class (res://example/example.gd).
 
+var LevelScene: PackedScene = preload("res://example/level.tscn")
+
 
 func _ready():
 	var config := SplitScreen2DConfig.new()
@@ -10,6 +12,7 @@ func _ready():
 	config.max_players = 4
 	
 	split_screen = SplitScreen2D.from_config(config)
+ 	config.queue_free()
 	
 	var players = [
 		load_player("p1", PlayerAvatar.ALIEN_A),
@@ -26,13 +29,13 @@ func _ready():
 
 
 func load_level(level_number: int) -> TileMap:
-	var level = load("res://example/level.tscn").instantiate()
+	var level = LevelScene.instantiate()
 	
 	return level
 
 
 func load_player(player_id: String, avatar: PlayerAvatar) -> Player:
-	var player = load("res://example/players/player.tscn").instantiate()
+	var player = PlayerScene.instantiate()
 	
 	player.player_id = player_id
 	player.avatar = avatar

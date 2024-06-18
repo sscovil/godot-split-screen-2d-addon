@@ -139,13 +139,14 @@ static func from_config(config: SplitScreen2DConfig) -> SplitScreen2D:
 ## of players has been reached, emit the `max_players_reached` signal and return without adding
 ## the player. If the minimum number of players has been reached, emit the `min_players_reached`
 ## signal. If `rebuild_when_player_added` is `true`, call `rebuild()` after adding the player.
-func add_player(player: Node2D) -> void:
+## Returns `true` if player is added; otherwise returns `false`.
+func add_player(player: Node2D) -> bool:
 	if players.size() >= max_players:
 		var hint: String = "Adjust max_players setting to allow more than %d." % max_players
 		if max_players >= MAX_PLAYERS:
 			hint = "Maximum number of players is %d." % MAX_PLAYERS
 		push_warning("Cannot add player. %s" % hint)
-		return
+		return false
 
 	# Add the player to the players array so it can be accessed later.
 	players.append(player)
@@ -160,6 +161,8 @@ func add_player(player: Node2D) -> void:
 	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_added:
 		rebuild(RebuildReason.PLAYER_ADDED)
+	
+	return true
 
 
 ## Returns the `Camera2D` that is assigned to a given player.
@@ -233,13 +236,14 @@ func rebuild(reason: RebuildReason = RebuildReason.EXTERNAL_REQUEST) -> void:
 ## Remove a player from the `players` array, and emit the `player_removed` signal. If the
 ## minimum number of players has been reached, emit the `min_players_reached` signal. If
 ## `rebuild_when_player_removed` is `true`, call `rebuild()` after removing the player.
-func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
+## Returns `true` if player is removed; otherwise returns `false`.
+func remove_player(player: Node2D, should_queue_free: bool = true) -> bool:
 	if players.size() <= min_players or player not in players:
 		var hint: String = "Adjust min_players setting to allow fewer than %d." % min_players
 		if max_players >= MIN_PLAYERS:
 			hint = "Minimum number of players is %d." % MIN_PLAYERS
 		push_warning("Cannot remove player. %s" % hint)
-		return
+		return false
 	
 	# Remove the player from the players array.
 	players.pop_at(players.find(player))
@@ -263,6 +267,8 @@ func remove_player(player: Node2D, should_queue_free: bool = true) -> void:
 	# Rebuild the SplitScreen2D tree if configured to do so.
 	if rebuild_when_player_removed:
 		rebuild(RebuildReason.PLAYER_REMOVED)
+	
+	return true
 
 
 ## Automatically detect child nodes that are not the `play_area` node, and add them to the

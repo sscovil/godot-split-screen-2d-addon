@@ -140,6 +140,7 @@ func _ready():
 	config.rebuild_delay = 0.1
 	
 	split_screen = SplitScreen2D.from_config(config)
+	config.queue_free()  # Release this object from memory after using it.
 	
 	for player in players:
 		split_screen.add_player(player)

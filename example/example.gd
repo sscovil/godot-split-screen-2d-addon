@@ -8,8 +8,9 @@ var PlayerScene: PackedScene = preload("res://example/players/player.tscn")
 @onready var background: ColorRect = $Background
 @onready var split_screen: SplitScreen2D
 
+
 func _ready():
-	split_screen = $SplitScreen2D
+	split_screen = $SplitScreen2D  # Assign this value here, so Example2 can extend this class.
 	_connect_signals()
 
 
@@ -27,7 +28,9 @@ func add_player() -> void:
 	player.player_id = _get_random_player_id()  # This determines which input actions are used.
 	player.avatar = _get_random_player_avatar()  # This determines which sprite is used.
 	player.position += _get_random_offset()  # This spawns the player in a unique position.
-	split_screen.add_player(player)
+	
+	if !split_screen.add_player(player):  ## The add_player() method returns false if player is not added.
+		player.queue_free()  # If the player was not added to the scene tree, free it from memory.
 
 
 func change_background_color() -> void:
