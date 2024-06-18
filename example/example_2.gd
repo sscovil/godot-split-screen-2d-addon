@@ -12,7 +12,7 @@ func _ready():
 	config.max_players = 4
 	
 	split_screen = SplitScreen2D.from_config(config)
- 	config.queue_free()
+	config.queue_free()
 	
 	var players = [
 		load_player("p1", PlayerAvatar.ALIEN_A),
